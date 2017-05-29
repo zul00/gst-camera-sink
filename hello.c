@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   /* Create the elements */
   source = gst_element_factory_make ("v4l2src", "source");
   caps = gst_element_factory_make("capsfilter", "caps");
-  dec = gst_element_factory_make("avimux", "dec");
+  dec = gst_element_factory_make("jpegdec", "dec");
   sink = gst_element_factory_make ("filesink", "sink");
 
   /* Create the empty pipeline */
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   g_object_set (source, "device", "/dev/video0", NULL);
   
   // Filter properties
-  filtercaps = gst_caps_new_simple ("video/x-raw",
+  filtercaps = gst_caps_new_simple ("image/jpeg",
       "width", G_TYPE_INT, 160,
       "height", G_TYPE_INT, 120,
       "framerate", GST_TYPE_FRACTION, 30, 1,
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
   gst_caps_unref (filtercaps);
 
   // Sink properties
-  g_object_set(sink, "location", "file2.avi", NULL);
+  g_object_set(sink, "location", "file2.yuv", NULL);
 
   /* Start playing */
   ret = gst_element_set_state (pipeline, GST_STATE_PLAYING);
