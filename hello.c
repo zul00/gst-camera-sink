@@ -1,7 +1,7 @@
 #include <gst/gst.h>
 
 int main(int argc, char *argv[]) {
-  GstElement *pipeline, *source, *sink, *caps;
+  GstElement *pipeline, *source, *sink, *caps, *dec;
   GstBus *bus;
   GstMessage *msg;
   GstStateChangeReturn ret;
@@ -13,19 +13,20 @@ int main(int argc, char *argv[]) {
   /* Create the elements */
   source = gst_element_factory_make ("v4l2src", "source");
   caps = gst_element_factory_make("capsfilter", "caps");
-  sink = gst_element_factory_make ("autovideosink", "sink");
+  dec = gst_element_factory_make("avimux", "dec");
+  sink = gst_element_factory_make ("filesink", "sink");
 
   /* Create the empty pipeline */
   pipeline = gst_pipeline_new ("test-pipeline");
 
-  if (!pipeline || !source || !sink || !caps) {
+  if (!pipeline || !source || !sink || !caps || !dec) {
     g_printerr ("Not all elements could be created.\n");
     return -1;
   }
 
   /* Build the pipeline */
-  gst_bin_add_many (GST_BIN (pipeline), source, caps, sink, NULL);
-  if (gst_element_link_many (source, caps, sink, NULL) != TRUE) {
+  gst_bin_add_many (GST_BIN (pipeline), source, caps, sink, dec, NULL);
+  if (gst_element_link_many (source, caps, dec, sink, NULL) != TRUE) {
     g_printerr ("Elements could not be linked.\n");
     gst_object_unref (pipeline);
     return -1;
@@ -41,6 +42,10 @@ int main(int argc, char *argv[]) {
       NULL);
   g_object_set (caps, "caps", filtercaps, NULL);
   gst_caps_unref (filtercaps);
+
+  // Sink properties
+  g_object_set(sink, "location", "file2.avi", NULL);
+
 
 
   /* Start playing */
