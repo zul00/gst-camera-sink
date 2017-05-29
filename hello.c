@@ -39,14 +39,13 @@ int main(int argc, char *argv[]) {
   filtercaps = gst_caps_new_simple ("video/x-raw",
       "width", G_TYPE_INT, 160,
       "height", G_TYPE_INT, 120,
+      "framerate", GST_TYPE_FRACTION, 30, 1,
       NULL);
   g_object_set (caps, "caps", filtercaps, NULL);
   gst_caps_unref (filtercaps);
 
   // Sink properties
   g_object_set(sink, "location", "file2.avi", NULL);
-
-
 
   /* Start playing */
   ret = gst_element_set_state (pipeline, GST_STATE_PLAYING);
