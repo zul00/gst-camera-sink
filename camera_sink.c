@@ -1,6 +1,9 @@
 #include <gst/gst.h>
 #include <glib.h>
 
+const char* dev="/dev/video1";
+const char* file="this.yuv";
+
 /**
  * @brief Message handler
  */
@@ -80,7 +83,7 @@ int main(int argc, char *argv[])
 
   /* Setup pipeline */
   // Source properties
-  g_object_set (source, "device", "/dev/video1", NULL);
+  g_object_set (source, "device", dev, NULL);
   
   // Filter properties
   filtercaps = gst_caps_new_simple ("image/jpeg",
@@ -92,7 +95,7 @@ int main(int argc, char *argv[])
   gst_caps_unref (filtercaps);
 
   // Sink properties
-  g_object_set(sink, "location", "file2.yuv", NULL);
+  g_object_set(sink, "location", file, NULL);
 
   /* Start playing */
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
