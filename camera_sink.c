@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 
   /* Setup pipeline */
   // Source properties
-  g_object_set (source, "device", "/dev/video0", NULL);
+  g_object_set (source, "device", "/dev/video1", NULL);
   
   // Filter properties
   filtercaps = gst_caps_new_simple ("image/jpeg",
