@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   data.source    = gst_element_factory_make("v4l2src",     "source");
   data.caps      = gst_element_factory_make("capsfilter",  "caps");
   data.dec       = gst_element_factory_make("jpegdec",     "dec");
-  data.sink      = gst_element_factory_make("appsink",    "sink");
+  data.sink      = gst_element_factory_make("appsink",     "sink");
 
   if (!data.pipeline || !data.source || !data.sink || !data.caps || !data.dec) {
     g_printerr ("Not all elements could be created.\n");
@@ -95,15 +95,11 @@ int main(int argc, char *argv[])
 
   /* Build the pipeline */
   gst_bin_add_many (GST_BIN (data.pipeline), data.source, data.caps, data.sink, data.dec, NULL);
-  if (gst_element_link_many (data.source, data.caps, data.dec, data.sink, NULL) != TRUE) {
-    g_printerr ("Elements could not be linked.\n");
-    gst_object_unref (data.pipeline);
-    return -1;
-  }
 
   /* Setup pipeline */
   // Source properties
   g_object_set (data.source, "device", dev, NULL);
+  g_printerr ("Source configured.\n");
   
   // Filter properties
   filtercaps = gst_caps_new_simple ("image/jpeg",
@@ -113,11 +109,20 @@ int main(int argc, char *argv[])
       NULL);
   g_object_set (data.caps, "caps", filtercaps, NULL);
   gst_caps_unref (filtercaps);
+  g_printerr ("Filter configured.\n");
 
   // Sink properties
-  g_object_set (data.sink, "emit-signals", TRUE, NULL);
+  g_object_set (data.sink, "emit-signals", TRUE, "drop", TRUE, NULL);
   g_signal_connect (data.sink, "new-sample", G_CALLBACK (new_sample), &data);
+  gst_caps_unref (Appsink);
   g_printerr ("Appsink configured.\n");
+
+  /* Link pipeline */
+  if (gst_element_link_many (data.source, data.caps, data.dec, data.sink, NULL) != TRUE) {
+    g_printerr ("Elements could not be linked.\n");
+    gst_object_unref (data.pipeline);
+    return -1;
+  }
 
   /* Start playing */
   gst_element_set_state (data.pipeline, GST_STATE_PLAYING);
