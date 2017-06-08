@@ -1,4 +1,5 @@
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
 #include <glib.h>
 
 const char* dev="/dev/video1";
@@ -18,13 +19,21 @@ static void new_sample (GstElement *sink, GstData *data) {
   g_printerr ("In the callback function.\n");                                   
                                                                                 
   GstSample *sample;                                                            
+  GstBuffer *buffer;
+  GstMapInfo map;
+
   /* Retrieve the buffer */                                                     
   g_signal_emit_by_name (sink, "pull-sample", &sample);                         
+  //sample = gst_app_sink_pull_sample(GST_APP_SINK(sink));
+  buffer = gst_sample_get_buffer(sample);
+  gst_buffer_map(buffer, &map, GST_MAP_READ);
+
   if (sample) {                                                                 
     /* The only thing we do in this example is print a * to indicate a received buffer */
-    g_print ("*");                                                              
+    g_print ("*\n");                                                              
     gst_sample_unref (sample);                                                  
   }                                                                             
+  gst_sample_unref(sample);
 }
 
 /**
@@ -114,7 +123,6 @@ int main(int argc, char *argv[])
   // Sink properties
   g_object_set (data.sink, "emit-signals", TRUE, "drop", TRUE, NULL);
   g_signal_connect (data.sink, "new-sample", G_CALLBACK (new_sample), &data);
-  gst_caps_unref (Appsink);
   g_printerr ("Appsink configured.\n");
 
   /* Link pipeline */
@@ -127,7 +135,7 @@ int main(int argc, char *argv[])
   /* Start playing */
   gst_element_set_state (data.pipeline, GST_STATE_PLAYING);
 
-  g_print ("Running...");
+  g_print ("Running...\n");
   g_main_loop_run (data.loop);
 
   /* Out of the main loop, clean up nicely */
