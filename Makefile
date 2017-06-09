@@ -1,5 +1,5 @@
 PROJECT=camera_sink
-PKG_CFG = `pkg-config --cflags --libs gstreamer-1.0`
+PKG_CFG = `pkg-config --cflags --libs gstreamer-1.0 gstreamer-app-1.0`
 
 SRC=$(addsuffix .c,$(PROJECT))
 

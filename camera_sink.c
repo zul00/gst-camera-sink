@@ -15,7 +15,7 @@ typedef struct {
 } GstData;
 
 /* The appsink has received a buffer */                                         
-static void new_sample (GstElement *sink, GstData *data) {                   
+GstFlowReturn new_sample (GstElement *sink, GstData *data) {                   
   g_printerr ("In the callback function.\n");                                   
                                                                                 
   GstSample *sample;                                                            
@@ -24,7 +24,6 @@ static void new_sample (GstElement *sink, GstData *data) {
 
   /* Retrieve the buffer */                                                     
   g_signal_emit_by_name (sink, "pull-sample", &sample);                         
-  //sample = gst_app_sink_pull_sample(GST_APP_SINK(sink));
   buffer = gst_sample_get_buffer(sample);
   gst_buffer_map(buffer, &map, GST_MAP_READ);
 
@@ -33,7 +32,8 @@ static void new_sample (GstElement *sink, GstData *data) {
     g_print ("*\n");                                                              
     gst_sample_unref (sample);                                                  
   }                                                                             
-  gst_sample_unref(sample);
+
+  return GST_FLOW_OK;
 }
 
 /**
