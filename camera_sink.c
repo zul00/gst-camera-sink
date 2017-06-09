@@ -2,7 +2,7 @@
 #include <gst/app/gstappsink.h>
 #include <glib.h>
 
-const char* dev="/dev/video1";
+const char* dev="/dev/video0";
 const char* file="this.yuv";
 
 typedef struct {
@@ -15,23 +15,26 @@ typedef struct {
 } GstData;
 
 /* The appsink has received a buffer */                                         
-GstFlowReturn new_sample (GstElement *sink, GstData *data) {                   
+GstFlowReturn new_sample (GstElement *sink, GstData *data) {
   g_printerr ("In the callback function.\n");                                   
                                                                                 
   GstSample *sample;                                                            
   GstBuffer *buffer;
   GstMapInfo map;
 
-  /* Retrieve the buffer */                                                     
-  g_signal_emit_by_name (sink, "pull-sample", &sample);                         
+  /* Retrieve the buffer */
+  g_signal_emit_by_name (sink, "pull-sample", &sample);
+
+  if (!sample) 
+  {
+    g_print ("*GST_FLOW_ERROR*\n");
+    return GST_FLOW_ERROR;
+  }                                                                             
+
+  g_print ("*OK*\n");
   buffer = gst_sample_get_buffer(sample);
   gst_buffer_map(buffer, &map, GST_MAP_READ);
-
-  if (sample) {                                                                 
-    /* The only thing we do in this example is print a * to indicate a received buffer */
-    g_print ("*\n");                                                              
-    gst_sample_unref (sample);                                                  
-  }                                                                             
+  gst_sample_unref (sample);
 
   return GST_FLOW_OK;
 }
