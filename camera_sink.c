@@ -5,7 +5,8 @@
 const char* dev="/dev/video0";
 const char* file="this.yuv";
 
-typedef struct {
+typedef struct 
+{
   GstElement *pipeline;
   GstElement *source, *sink, *caps, *dec;
 
@@ -14,23 +15,28 @@ typedef struct {
   GMainLoop *loop;  /* GLib's Main Loop */
 } GstData;
 
-/* The appsink has received a buffer */                                         
-GstFlowReturn new_sample (GstElement *sink, GstData *data) {
-  g_printerr ("In the callback function.\n");                                   
-                                                                                
-  GstSample *sample;                                                            
+/**
+ * @brief Callback function for new sample
+ */
+GstFlowReturn new_sample (GstElement *sink, GstData *data) 
+{
+  g_printerr ("In the callback function.\n");
+
+  GstSample *sample;
   GstBuffer *buffer;
   GstMapInfo map;
 
-  /* Retrieve the buffer */
+  // Retrieve the buffer
   g_signal_emit_by_name (sink, "pull-sample", &sample);
 
-  if (!sample) 
+  // Check sample
+  if (!sample)
   {
     g_print ("*GST_FLOW_ERROR*\n");
     return GST_FLOW_ERROR;
-  }                                                                             
+  }
 
+  // Do something with sample
   g_print ("*OK*\n");
   buffer = gst_sample_get_buffer(sample);
   gst_buffer_map(buffer, &map, GST_MAP_READ);
@@ -49,26 +55,27 @@ static gboolean bus_call (
 {
   GMainLoop *loop = (GMainLoop *) data;
 
-  switch (GST_MESSAGE_TYPE (msg)) {
-
+  switch (GST_MESSAGE_TYPE (msg)) 
+  {
     case GST_MESSAGE_EOS:
       g_print ("End of stream\n");
       g_main_loop_quit (loop);
       break;
 
-    case GST_MESSAGE_ERROR: {
-      gchar  *debug;
-      GError *error;
+    case GST_MESSAGE_ERROR: 
+      {
+        gchar  *debug;
+        GError *error;
 
-      gst_message_parse_error (msg, &error, &debug);
-      g_free (debug);
+        gst_message_parse_error (msg, &error, &debug);
+        g_free (debug);
 
-      g_printerr ("Error: %s\n", error->message);
-      g_error_free (error);
+        g_printerr ("Error: %s\n", error->message);
+        g_error_free (error);
 
-      g_main_loop_quit (loop);
-      break;
-    }
+        g_main_loop_quit (loop);
+        break;
+      }
     default:
       break;
   }
@@ -76,7 +83,7 @@ static gboolean bus_call (
   return TRUE;
 }
 
-int main(int argc, char *argv[]) 
+int main(int argc, char *argv[])
 {
   GstData data;
   GstBus *bus;
@@ -95,24 +102,26 @@ int main(int argc, char *argv[])
   data.dec       = gst_element_factory_make("jpegdec",     "dec");
   data.sink      = gst_element_factory_make("appsink",     "sink");
 
-  if (!data.pipeline || !data.source || !data.sink || !data.caps || !data.dec) {
+  if (!data.pipeline || !data.source || !data.sink || !data.caps || !data.dec) 
+  {
     g_printerr ("Not all elements could be created.\n");
     return -1;
   }
-  
+
   /* Add message handler */
   bus = gst_pipeline_get_bus (GST_PIPELINE (data.pipeline));
   data.bus_watch_id = gst_bus_add_watch (bus, bus_call, data.loop);
   gst_object_unref (bus);
 
   /* Build the pipeline */
-  gst_bin_add_many (GST_BIN (data.pipeline), data.source, data.caps, data.sink, data.dec, NULL);
+  gst_bin_add_many (GST_BIN (data.pipeline), 
+      data.source, data.caps, data.sink, data.dec, NULL);
 
   /* Setup pipeline */
   // Source properties
   g_object_set (data.source, "device", dev, NULL);
   g_printerr ("Source configured.\n");
-  
+
   // Filter properties
   filtercaps = gst_caps_new_simple ("image/jpeg",
       "width", G_TYPE_INT, 160,
@@ -129,7 +138,9 @@ int main(int argc, char *argv[])
   g_printerr ("Appsink configured.\n");
 
   /* Link pipeline */
-  if (gst_element_link_many (data.source, data.caps, data.dec, data.sink, NULL) != TRUE) {
+  if (gst_element_link_many (
+        data.source, data.caps, data.dec, data.sink, NULL) != TRUE) 
+  {
     g_printerr ("Elements could not be linked.\n");
     gst_object_unref (data.pipeline);
     return -1;
