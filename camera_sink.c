@@ -26,20 +26,31 @@ GstFlowReturn new_sample (GstElement *sink, GstData *data)
   GstBuffer *buffer;
   GstMapInfo map;
 
-  // Retrieve the buffer
+  // Retrieve the sample
   g_signal_emit_by_name (sink, "pull-sample", &sample);
 
   // Check sample
   if (!sample)
   {
-    g_print ("*GST_FLOW_ERROR*\n");
+    g_print ("*sample is NULL*\n");
     return GST_FLOW_ERROR;
   }
 
-  // Do something with sample
-  g_print ("*OK*\n");
+  /* Do something with sample */
+  // get buffer associated with sample
   buffer = gst_sample_get_buffer(sample);
+  if (!buffer)
+  {
+    g_print ("*buffer is NULL*\n");
+    return GST_FLOW_ERROR;
+  }
+
+  // Get map info of all merged memory block in buffer
   gst_buffer_map(buffer, &map, GST_MAP_READ);
+  
+  // show map size
+  g_print ("size=%ul\n", map.size);
+
   gst_sample_unref (sample);
 
   return GST_FLOW_OK;
